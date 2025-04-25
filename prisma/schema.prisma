@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+enum jenisHewan {
+  SAPI
+  KAMBING
+}
+
+enum bayar {
+  TRANSFER
+  COD
+}
+
+enum statusBayar {
+  NEW
+  PAID
+  DONE
+}
+
+enum statusHewan {
+  TERSEDIA
+  HABIS
+}
+
+enum role {
+  Pelanggan
+  Penjual
+}
+
+model user {
+  idUser            Int         @id @default(autoincrement())
+  uuid              String      @unique @default("")
+  nama              String      @default("")
+  email             String      @default("")  @unique
+  password          String      @default("")
+  hp                String      @default("")
+  alamat            String      @default("")  @db.Text
+  profile           String      @default("")
+  role              role        @default(Pelanggan)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  hewan             hewan[]
+  transaksi         transaksi[]
+}
+
+model hewan {
+  idHewan           Int         @id @default(autoincrement())
+  uuid               String      @default("")  @unique 
+  berat             String      @default("")
+  umur              Int         @default(0)
+  harga             Int         @default(0)
+  kategori          jenisHewan  @default(SAPI)
+  deskripsi         String      @default("")  @db.Text
+  foto              String      @default("")
+  statusHewan       statusHewan @default(TERSEDIA)
+  penjual           user?       @relation(fields: [idPenjual], references: [idUser])
+  idPenjual         Int?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  DetailTransaksi   detailTransaksi[]
+}
+
+model transaksi {
+  idTransaksi       Int         @id @default(autoincrement())
+  uuid               String     @default("")  @unique 
+  totalBayar        Int         @default(0)
+  statusBayar       statusBayar @default(NEW)
+  pembayaran        bayar       @default(TRANSFER)
+  user              user?       @relation( fields: [idUser], references: [idUser])
+  idUser            Int?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  detailTransaksi   detailTransaksi[]
+}
+
+model detailTransaksi {
+  idDetail          Int         @id @default(autoincrement())
+  uuid               String         @default("") @unique
+  transaksi         transaksi?  @relation(fields: [idTransaksi], references: [idTransaksi])
+  idTransaksi       Int?
+  hewan             hewan?      @relation(fields: [idHewan], references: [idHewan])
+  idHewan           Int?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
