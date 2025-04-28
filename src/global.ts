@@ -1,4 +1,7 @@
 import path from "path";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 // definisikan path (alamat) dari folder "root"
 

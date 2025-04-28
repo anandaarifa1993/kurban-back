@@ -117,17 +117,11 @@ export const getAllOrders = async (request: Request, response: Response) => {
 export const createOrder = async (request: Request, response: Response) => {
   try {
     /** get requested data (data has been sent from request) */
-    const { pembayaran, detailTransaksi, user } = request.body;
+    const { pembayaran, detailTransaksi } = request.body;
     const uuid = uuidv4();
 
     /** validate the user input */
-    if (!user || !user.id) {
-      return response.status(400).json({
-        status: false,
-        message: "Informasi user tidak lengkap.",
-      });
-    }
-
+    const user = request.body.user;
     /** Collect unavailable hewan IDs */
     let total_price = 0;
     const unavailableHewan = [];
@@ -154,7 +148,9 @@ export const createOrder = async (request: Request, response: Response) => {
     if (unavailableHewan.length > 0) {
       return response.status(400).json({
         status: false,
-        message: `Hewan yang diminta tidak ditemukan atau sudah terjual: ${unavailableHewan.join(", ")}.`,
+        message: `Hewan yang diminta tidak ditemukan atau sudah terjual: ${unavailableHewan.join(
+          ", "
+        )}.`,
       });
     }
 
@@ -205,8 +201,6 @@ export const createOrder = async (request: Request, response: Response) => {
     });
   }
 };
-
-
 
 export const updateStatusOrder = async (req: Request, res: Response) => {
   try {

@@ -6,7 +6,7 @@ const orderListSchema = Joi.object({
 });
 
 const addDataSchema = Joi.object({
-  payment_met: Joi.string().valid("CASH", "QRIS").uppercase().required(),
+  pembayaran: Joi.string().valid("TRANSFER", "COD").uppercase().required(),
   detailTransaksi: Joi.array().items(orderListSchema).min(1).required(),
   user: Joi.optional(),
 });

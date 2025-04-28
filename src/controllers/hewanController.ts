@@ -14,7 +14,7 @@ export const getAllHewan = async (request: Request, response: Response) => {
     const allHewan = await prisma.hewan.findMany({
       where: {
         berat: {
-          contains: search?.toString() || ""
+          contains: search?.toString() || "",
         },
       },
     });
@@ -42,19 +42,37 @@ export const addHewan = async (request: Request, response: Response) => {
   try {
     // mengambil data dari request body
     const { berat, umur, harga, kategori, deskripsi } = request.body;
-    const { user } = request.body.user;
     const uuid = uuidv4();
+
+    let filename;
+
+    if (request.file) {
+      // update nama file dari foto yang di upload
+      filename = request.file.filename;
+
+      // cek foto yang lama di dalam folder
+      let path = `${BASE_URL}../public/hewan_picture/${filename}`;
+    }
 
     // proses menyimpan data hewan yang telah diinput hewan
     const newHewan = await prisma.hewan.create({
-      data: { uuid, umur, kategori, berat, harga: Number(harga), deskripsi },
+      data: {
+        uuid,
+        umur: Number(umur),
+        kategori,
+        berat,
+        harga: Number(harga),
+        deskripsi,
+        foto: filename,
+        idPenjual: request.body.user.id,
+      },
     });
 
     return response
       .json({
         status: true,
         data: newHewan,
-        user: user,
+        user: request.body.user.id,
         message: `Hewan Berhasil Ditambahkan`,
       })
       .status(200);
@@ -72,7 +90,8 @@ export const updateHewan = async (request: Request, response: Response) => {
   try {
     const { idHewan } = request.params; // mendapatkan request berupa ID yang dikirim melalui parameter
     const { user } = request.body.user;
-    const { berat, umur, harga, kategori, deskripsi, statusHewan } = request.body; // mendapatkan request data dair body
+    const { berat, umur, harga, kategori, deskripsi, statusHewan } =
+      request.body; // mendapatkan request data dair body
 
     // memastikan data ada di database
     const findHewan = await prisma.hewan.findFirst({
@@ -84,6 +103,20 @@ export const updateHewan = async (request: Request, response: Response) => {
         message: `Hewan tidak ditemukan`,
       });
 
+    let filename = findHewan.foto;
+
+    if (request.file) {
+      // update nama file dari foto yang di upload
+      filename = request.file.filename;
+
+      // cek foto yang lama di dalam folder
+      let path = `${BASE_URL}../public/hewan_picture/${findHewan.foto}`;
+      let exists = fs.existsSync(path);
+
+      // hapus foto yang lama jika di upload file baru
+      if (exists && findHewan.foto !== ``) fs.unlinkSync(path); // unlinksync untuk menghapus file tersebut
+    }
+
     const updateHewan = await prisma.hewan.update({
       data: {
         berat: berat || findHewan.berat,
@@ -92,7 +125,8 @@ export const updateHewan = async (request: Request, response: Response) => {
         kategori: kategori || findHewan.kategori,
         deskripsi: deskripsi || findHewan.deskripsi,
         idPenjual: user ? user.id : findHewan.idPenjual,
-        statusHewan: statusHewan || findHewan.statusHewan
+        statusHewan: statusHewan || findHewan.statusHewan,
+        foto: filename || findHewan.foto,
       },
       where: { idHewan: Number(idHewan) },
     });
